@@ -1,3 +1,9 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#include "Particle.h"
+#line 1 "/Users/pjb/Dropbox/smart-coasts-bathy-mapping/Firmware/depth-sensing-serialMode/src/depth-sensing-serialMode.ino"
 /*
  * JSN_SR04T Ver 3.0 Ultrasonic Test - Serial Interface Mode
  * from https://protosupplies.com/product/jsn-sr04t-v3-0-waterproof-ultrasonic-range-finder/
@@ -29,6 +35,9 @@
 // SoftwareSerial JSN_SR04T(RX_PIN, TX_PIN);
 
 // To use Particle devices without cloud connectivity
+void setup();
+void loop();
+#line 32 "/Users/pjb/Dropbox/smart-coasts-bathy-mapping/Firmware/depth-sensing-serialMode/src/depth-sensing-serialMode.ino"
 SYSTEM_MODE(SEMI_AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
@@ -71,9 +80,5 @@ void loop() {
         Serial1.flush();              // Flush the buffer until valid start byte
       }
     }
-    else{
-      Serial.println("no serial yet"); // let us know if 4 bytes are available
-    }
-    delay(900); // slow to ~ 1 Hz readout (including 100 ms delay above)
     
 }

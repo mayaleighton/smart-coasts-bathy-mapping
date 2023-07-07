@@ -1,7 +1,8 @@
 /*
  * JSN_SR04T Ver 3.0 Ultrasonic Test - Serial Interface Mode
  * from https://protosupplies.com/product/jsn-sr04t-v3-0-waterproof-ultrasonic-range-finder/
- * adapted by PJB 7-July-2023. PJB's is intended for Particle HW without software serial.
+ * adapted by PJB 7-July-2023. PJB's is intended for Particle HW without software serial. See 
+ * website above for an Arduino Uno/SoftwareSerial version
  *
  * MODE 2: MCU Controlled Serial Mode
  * To enter Mode 2, the M2 pads are shorted OR a resistor value of 120K is placed across the MODE pads.

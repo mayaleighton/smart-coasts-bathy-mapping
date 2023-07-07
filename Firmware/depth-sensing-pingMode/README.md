@@ -2,6 +2,8 @@
 
 A Particle project named depth-sensing-pingMode
 
+Using code from [https://protosupplies.com/product/jsn-sr04t-v3-0-waterproof-ultrasonic-range-finder/](https://protosupplies.com/product/jsn-sr04t-v3-0-waterproof-ultrasonic-range-finder/). Two modes of operation, named "ping" and "serial." Serial may provide higher data quality. Both modes require knowledge of the speed of sound in the medium being measured. We recommend using the [Thermodynamic Equation of State (TEOS-10)](https://www.teos-10.org/) for sound speed calculations. This requires measurement of CTD or salinity, temperature, and pressure.
+
 ## Welcome to your project!
 
 Every new Particle project is composed of 3 important elements that you'll see have been created in your project directory for depth-sensing-pingMode.

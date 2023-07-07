@@ -19,8 +19,10 @@ float distance_Per_uSec;      // Distance sound travels in one microsecond
 void setup() {
   pinMode(TRIG_PIN,OUTPUT);
   pinMode(ECHO_PIN,INPUT);
+
+  // TODO: PJB to update sound speed calc using TEOS-10 and temp/salinity/pressure measurement
   // Formula to calculate speed of sound in meters/sec based on temp
-  speed_Of_Sound = 331.1 +(0.606 * temp_In_C);  
+  speed_Of_Sound = 331.1 +(0.606 * temp_In_C); 
   // Calculate the distance that sound travels in one microsecond in centimeters
   distance_Per_uSec = speed_Of_Sound / 10000.0;
   Serial.begin(9600);

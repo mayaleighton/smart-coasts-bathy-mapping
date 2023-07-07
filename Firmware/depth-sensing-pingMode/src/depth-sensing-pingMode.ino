@@ -7,6 +7,11 @@
  * RX/TRIG - connect to digital pin 12.  Can be any digital pin
  * TX/ECHO - connect to digital pin 13.  Can be any digital pin
  */
+
+// To use Particle devices without cloud connectivity
+SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_THREAD(ENABLED);
+
 const int TRIG_PIN = 12;
 const int ECHO_PIN = 13;
 float temp_In_C = 20.0;  // Can enter actual air temp here for maximum accuracy

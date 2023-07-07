@@ -28,6 +28,10 @@
 //  // Create instance of soft serial port for comm with module
 // SoftwareSerial JSN_SR04T(RX_PIN, TX_PIN);
 
+// To use Particle devices without cloud connectivity
+SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_THREAD(ENABLED);
+
 byte StartByte = 0;           // 0xFF signifies a new packet of info coming in
 byte MSByte = 0;              // Most Significant Byte of distance measurement
 byte LSByte = 0;              // Least Significant Byte of distance measurement

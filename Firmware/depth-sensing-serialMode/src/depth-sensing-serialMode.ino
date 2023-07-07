@@ -10,23 +10,14 @@
  * 
  * Exercises the ultrasonic range finder module in serial mode 
  * and print out the current measured distance
- * This uses 'softserial' to communicate with the module to avoid any conflict 
- * with the HW serial port if using an UNO. 
- * VCC - connect to 5V
- * GND - connect to ground.
+ * VCC - connect to 3V3 
+ * GND - connect to GND
  * Serial pins are cross connected RX to TX and TX to RX
- * TRIG/TX pin - connect to digital pin 11 (RX) // ONLY FOR UNO, NOT PARTICLE!
- * ECHO/RX - connect to digital pin 10 (TX) // ONLY FOR UNO, NOT PARTICLE!
+ * TRIG/TX pin - connect to Particle RX pin
+ * ECHO/RX - connect to Particle TX pin
  * 
  * For Serial mode of operation, ensure the M2 location is shorted
  */ 
-
-// NOT USING SOFTWARE SERIAL SINCE USING PARTICLE HW, NOT ARDUINO UNO
-// #include <SoftwareSerial.h>;
-// const int TX_PIN = 10;      // Pin for Soft Serial TX
-// const int RX_PIN = 11;      // Pin for Soft Serial RX
-//  // Create instance of soft serial port for comm with module
-// SoftwareSerial JSN_SR04T(RX_PIN, TX_PIN);
 
 // To use Particle devices without cloud connectivity
 SYSTEM_MODE(SEMI_AUTOMATIC);

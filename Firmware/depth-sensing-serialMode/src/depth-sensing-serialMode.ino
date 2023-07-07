@@ -3,6 +3,11 @@
  * from https://protosupplies.com/product/jsn-sr04t-v3-0-waterproof-ultrasonic-range-finder/
  * adapted by PJB 7-July-2023. PJB's is intended for Particle HW without software serial.
  *
+ * MODE 2: MCU Controlled Serial Mode
+ * To enter Mode 2, the M2 pads are shorted OR a resistor value of 120K is placed across the MODE pads.
+ * This mode is the same as Mode 1 except that the module takes a measurement only when a trigger command of 0x55 is sent to the RX pin on the module. The module then takes a single measurement and outputs the distance on its TX pin.
+ * The minimum trigger cycle time is 60mS
+ * 
  * Exercises the ultrasonic range finder module in serial mode 
  * and print out the current measured distance
  * This uses 'softserial' to communicate with the module to avoid any conflict 
@@ -28,6 +33,7 @@ byte MSByte = 0;              // Most Significant Byte of distance measurement
 byte LSByte = 0;              // Least Significant Byte of distance measurement
 byte CheckSum = 0;            // CheckSum = 0xFF + MSByte + LSByte
 unsigned int mmDist = 0;      // Returned distance in millimeters
+
 //===============================================================================
 //  Initialization
 //=============================================================================== 
@@ -35,8 +41,9 @@ void setup() {
     Serial.begin(9600);       
     Serial1.begin(9600);    // Initialize the software serial port
 }
+
 //===============================================================================
-//  Main
+//  Main Loop
 //=============================================================================== 
 void loop() {
     Serial1.flush();        // Clear the serial port buffer   

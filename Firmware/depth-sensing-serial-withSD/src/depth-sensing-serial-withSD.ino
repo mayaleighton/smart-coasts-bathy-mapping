@@ -164,9 +164,14 @@ void loop(void) {
 
     // Comment out the following to simply stay in datalogging state at 1 Hz
     // state = PUBLISH_STATE;
+    state = DATALOG_STATE;
   }
   break;
 
+    //////////////////////////////////////////////////////////////////////////////
+  /*** PUBLISH_STATE ***/
+  /*** Get here from DATALOG_STATE and go to SLEEP_STATE if publishing followed by sleep is desirable
+  ***/
   case PUBLISH_STATE: {
 
     // Prep for cellular transmission

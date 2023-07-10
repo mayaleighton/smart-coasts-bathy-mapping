@@ -7,8 +7,8 @@
  * RX/TRIG - connect to digital pin 12.  Can be any digital pin
  * TX/ECHO - connect to digital pin 13.  Can be any digital pin
  */
-const int TRIG_PIN = 12;
-const int ECHO_PIN = 13;
+const int TRIG_PIN = 15;
+const int ECHO_PIN = 16;
 float temp_In_C = 20.0;  // Can enter actual air temp here for maximum accuracy
 float speed_Of_Sound;          // Calculated speed of sound based on air temp
 float distance_per_usec;      // Distance sound travels in one microsecond

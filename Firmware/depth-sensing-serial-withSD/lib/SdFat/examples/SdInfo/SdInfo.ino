@@ -15,7 +15,7 @@
  * Adafruit SD shields and modules, pin 10.
  * Default SD chip select is the SPI SS pin.
  */
-const uint8_t SD_CHIP_SELECT = SS;
+const uint8_t SD_CHIP_SELECT = D5;
 /*
  * Set DISABLE_CHIP_SELECT to disable a second SPI device.
  * For example, with the Ethernet shield, set DISABLE_CHIP_SELECT

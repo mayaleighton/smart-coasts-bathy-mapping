@@ -22,7 +22,7 @@
 
 #include "SdFat.h"
  //------------------SD SPI Configuration Details--------------------------------
-const int SD_CHIP_SELECT = SS;
+const int SD_CHIP_SELECT = D5;
 SdFat sd;
 
 //------------------LED Setup
@@ -50,12 +50,12 @@ float distance_unconverted; // store the distance from sensor
 
 //------------------State variables
 // not yet used but placeholders in case of additional states
-enum State {
-  DATALOG_STATE,
-  PUBLISH_STATE,
-  SLEEP_STATE
-};
-State state = DATALOG_STATE;
+// enum State {
+//   DATALOG_STATE,
+//   PUBLISH_STATE,
+//   SLEEP_STATE
+// };
+// State state = DATALOG_STATE;
 unsigned long stateTime = 0;
 
 //------------------Turn off cellular for prelim testing; turn on for deployment
@@ -75,8 +75,8 @@ const unsigned long MAX_TIME_TO_PUBLISH_MS = 60000; // Only stay awake for 60 se
 const unsigned long TIME_AFTER_PUBLISH_MS = 4000; // After publish, wait 4 seconds for data to go out
 
 void setup(void) {
-  Particle.connect();
-  //Cellular.off(); // turn off cellular for prelim testing (uncomment)
+  // Particle.connect();
+  // Cellular.off(); // turn off cellular for prelim testing (uncomment for Boron, leave commented out for Argon)
 
   delay(5000); // to see response from begin command
 
@@ -87,161 +87,73 @@ void setup(void) {
 }
 
 void loop(void) {
-  // Enter state machine
-  switch (state) {
 
-    //////////////////////////////////////////////////////////////////////////////
-    /*** PUBLISH_STATE ***/
-    /*** Get here from boot. Ensure that we're connected to Particle Cloud.
-    If so, poll Maxbotix and send to cloud then
-    go to SLEEP_STATE
-    If not connected, still get/print value then go to SLEEP_STATE.
-    ***/
-  case DATALOG_STATE: {
+  Serial1.flush(); // Clear the serial port buffer   
+  Serial1.write(0x55); // Request distance measurement
+  delay(100); // Give sensor time to make the measurement (>60mSec)
 
-    Serial1.flush(); // Clear the serial port buffer   
-    Serial1.write(0x55); // Request distance measurement
-    delay(100); // Give sensor time to make the measurement (>60mSec)
+  // Looking for 4 bytes to be returned
+  while(!Serial1.available() >= 4) { 
+    delay(100); // wait for 4 bytes
+  } 
 
-    if (Serial1.available() >= 4) { // Looking for 4 bytes to be returned
-      StartByte = Serial1.read(); // Read first byte 
-      if (StartByte == 0xFF) { // 1st byte is 0xFF for new measurement
-        MSByte = Serial1.read(); // Read in the MSB (Most Significant Byte)
-        LSByte = Serial1.read(); // Read in the LSB (Least Significant Byte)
-        CheckSum = Serial1.read(); // Read the checksum byte
-        mmDist = MSByte * 256 + LSByte; // Calculate the distance from the two bytes
-        Serial.print("Distance: ");
-        Serial.print(mmDist); // Print in millimeters
-        Serial.print("mm  /  ");
-        Serial.print(mmDist / 25.4, 2); // Print in inches
-        Serial.println("in");
-      } else {
-        Serial1.flush(); // Flush the buffer until valid start byte
-      }
-    } else {
-      Serial.println("no serial yet"); // let us know if 4 bytes are available
-    }
+  // Interpret incoming data
+  StartByte = Serial1.read(); // Read first byte 
+  
+  if (StartByte == 0xFF) { // 1st byte is 0xFF for new measurement
+    MSByte = Serial1.read(); // Read in the MSB (Most Significant Byte)
+    LSByte = Serial1.read(); // Read in the LSB (Least Significant Byte)
+    CheckSum = Serial1.read(); // Read the checksum byte
+    mmDist = MSByte * 256 + LSByte; // Calculate the distance from the two bytes
+    Serial.print("Distance: ");
+    Serial.print(mmDist); // Print in millimeters
+    Serial.print("mm  /  ");
+    Serial.print(mmDist / 25.4, 2); // Print in inches
+    Serial.println("in");
 
-    // Get all metrics which are to be reused:
-    // Convert analog signal to centimeters
-    // range_cm = (float)distance_unconverted * 0.25; // conversion factor for MB7092 XL-MaxSonar-WRMA1; TODO: check new sensor's datasheet
-
-    // "Real" time and current millis for logging
-    real_time = Time.now();
-    millis_now = millis();
-
-    // Print out distance
-    Serial.print("Time: ");
-    Serial.print(real_time);
-    Serial.print(", Distance(mm): ");
-    Serial.print(mmDist);
-
-    // Start SD stuff
-    File myFile;
-
-    // Initialize the library
-    if (!sd.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
-      Serial.println("failed to open card");
-      return;
-    }
-
-    // open the file for write at end like the "Native SD library"
-    if (!myFile.open("distance.txt", O_RDWR | O_CREAT | O_AT_END)) {
-      Serial.println("opening test.txt for write failed");
-      return;
-    }
-
-    // Save to SD card
-    myFile.print(real_time);
-    myFile.print(",");
-    myFile.print(millis_now);
-    myFile.print(",");
-    myFile.print(mmDist);
-    myFile.close();
-
-    delay(100);
-    //}
-
-    // Comment out the following to simply stay in datalogging state at 1 Hz
-    // state = PUBLISH_STATE;
-    state = DATALOG_STATE;
+  } else {
+    Serial1.flush(); // Flush the buffer until valid start byte
   }
-  break;
 
-    //////////////////////////////////////////////////////////////////////////////
-  /*** PUBLISH_STATE ***/
-  /*** Get here from DATALOG_STATE and go to SLEEP_STATE if publishing followed by sleep is desirable
-  ***/
-  case PUBLISH_STATE: {
+  // Get all metrics which are to be reused:
+  // Convert analog signal to centimeters
+  // range_cm = (float)distance_unconverted * 0.25; // conversion factor for MB7092 XL-MaxSonar-WRMA1; TODO: check new sensor's datasheet
 
-    // Prep for cellular transmission
-    bool isMaxTime = false;
-    stateTime = millis();
+  // "Real" time and current millis for logging
+  real_time = Time.now();
+  millis_now = millis();
 
-    while (!isMaxTime) {
-      //connect particle to the cloud
-      if (Particle.connected() == false) {
-        Particle.connect();
-        Serial.print("Trying to connect");
-      }
+  // Print out distance
+  Serial.print("Time: ");
+  Serial.print(real_time);
+  Serial.print(", Distance(mm): ");
+  Serial.print(mmDist);
 
-      // If connected, publish data buffer
-      if (Particle.connected()) {
-        // Get power and time once connected. TODO: ensure contemporaneous time and sensor sampling
+  // Start SD stuff
+  File myFile;
 
-        // Get battery charge if Boron provides it
-        float cellVoltage = batteryMonitor.getVCell();
-        float stateOfCharge = batteryMonitor.getSoC();
-
-        char data[120];
-        snprintf(data, sizeof(data), "%li,%.5f,%.02f,%.02f", //,%.5f,%.5f,%.5f,%.5f,%.5f,%.02f,%.02f",
-          real_time, // if it takes a while to connect, this time could be offset from sensor recording
-          mmDist,
-          cellVoltage, stateOfCharge
-        );
-        Serial.println("publishing data");
-        Particle.publish(eventName, data, 60, PRIVATE);
-
-        // Wait for the publish data
-        delay(TIME_AFTER_PUBLISH_MS);
-        isMaxTime = true;
-        state = SLEEP_STATE;
-      }
-      // If not connected after certain amount of time, go to sleep to save battery
-      else {
-        // Took too long to publish, just go to sleep
-        if (millis() - stateTime >= MAX_TIME_TO_PUBLISH_MS) {
-          isMaxTime = true;
-          state = SLEEP_STATE;
-          Serial.println("max time for publishing reached without success; go to sleep");
-        }
-        Serial.println("Not max time, try again to publish");
-        delay(100);
-      }
-    }
+  // Initialize the library
+  if (!sd.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
+    Serial.println("failed to open card");
+    return;
   }
-  break;
 
-  //////////////////////////////////////////////////////////////////////////////
-  /*** SLEEP_STATE ***/
-  /*** Get here from PUBLISH_STATE and go to GPS_WAIT_STATE (if code makes it that far)
-  or SLEEP_MODE_DEEP after calculating a wakeup time based off of the current time from the cloud.
-  ***/
-  case SLEEP_STATE: {
-    Serial.println("going to sleep");
-    delay(500);
-
-    // Set up Gen 3 sleep
-    config.mode(SystemSleepMode::ULTRA_LOW_POWER)
-      .gpio(D2, FALLING)
-      .duration(54 min);
-    System.sleep(config);
-
-    // It'll only make it here if the sleep call doesn't work for some reason
-    Serial.print("Feeling restless");
-    stateTime = millis();
-    state = PUBLISH_STATE;
+  // open the file for write at end like the "Native SD library"
+  if (!myFile.open("distance.txt", O_RDWR | O_CREAT | O_AT_END)) {
+    Serial.println("opening test.txt for write failed");
+    return;
   }
-  break;
-  }
+
+  // Save to SD card
+  myFile.print(real_time);
+  myFile.print(",");
+  myFile.print(millis_now);
+  myFile.print(",");
+  myFile.print(mmDist);
+  myFile.close();
+
+  delay(900);
+  //}
+
+
 }

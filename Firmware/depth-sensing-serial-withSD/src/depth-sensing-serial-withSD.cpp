@@ -143,7 +143,7 @@ void loop(void) {
   File myFile;
 
   // open the file for write at end like the "Native SD library"
-  if (!myFile.open("depth.txt", O_RDWR | O_CREAT | O_AT_END)) {
+  if (!myFile.open("depth.csv", O_RDWR | O_CREAT | O_AT_END)) {
     Serial.println("opening test.txt for write failed");
     return;
   }

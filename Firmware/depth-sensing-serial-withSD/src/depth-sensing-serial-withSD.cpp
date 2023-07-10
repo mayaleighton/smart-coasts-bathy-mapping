@@ -1,3 +1,9 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#include "Particle.h"
+#line 1 "/Users/pjb/Dropbox/smart-coasts-bathy-mapping/Firmware/depth-sensing-serial-withSD/src/depth-sensing-serial-withSD.ino"
 /*
  * JSN_SR04T Ver 3.0 Ultrasonic Test - Serial Interface Mode
  * from https://protosupplies.com/product/jsn-sr04t-v3-0-waterproof-ultrasonic-range-finder/
@@ -22,6 +28,9 @@
 
 #include "SdFat.h"
 //------------------SD SPI Configuration Details--------------------------------
+void setup(void);
+void loop(void);
+#line 25 "/Users/pjb/Dropbox/smart-coasts-bathy-mapping/Firmware/depth-sensing-serial-withSD/src/depth-sensing-serial-withSD.ino"
 const int SD_CHIP_SELECT = SS;
 SdFat sd;
 
@@ -50,8 +59,8 @@ float distance_unconverted; // store the distance from sensor
 
 //------------------State variables
 // not yet used but placeholders in case of additional states
-enum State { DATALOG_STATE, PUBLISH_STATE, SLEEP_STATE };
-State state = DATALOG_STATE;
+enum State { PUBLISH_STATE, SLEEP_STATE };
+State state = PUBLISH_STATE;
 unsigned long stateTime = 0;
 
 //------------------Turn off cellular for prelim testing; turn on for deployment
@@ -95,7 +104,7 @@ void loop(void)
   go to SLEEP_STATE
   If not connected, still get/print value then go to SLEEP_STATE.
   ***/
-  case DATALOG_STATE: {
+  case PUBLISH_STATE: {
 
     Serial1.flush();        // Clear the serial port buffer   
     Serial1.write(0x55);    // Request distance measurement
@@ -162,14 +171,7 @@ void loop(void)
 
       delay(100);
     //}
-
-    // Comment out the following to simply stay in datalogging state at 1 Hz
-    // state = PUBLISH_STATE;
-  }
-  break;
-
-    case PUBLISH_STATE: {
-
+    
     // Prep for cellular transmission
     bool isMaxTime = false;
     stateTime = millis();

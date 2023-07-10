@@ -89,8 +89,14 @@ void setup(void) {
 
   delay(5000); // to see response from begin command
 
+  // Initialize the library
+  if (!sd.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
+    Serial.println("failed to open card");
+    return;
+  }
+
   Serial.begin(9600);
-  Serial.println("Maxbotix Test");
+  Serial.println("JSN Test");
   Serial1.begin(9600); // Initialize the software serial port
 
 }
@@ -114,12 +120,6 @@ void loop(void) {
     LSByte = Serial1.read(); // Read in the LSB (Least Significant Byte)
     CheckSum = Serial1.read(); // Read the checksum byte
     mmDist = MSByte * 256 + LSByte; // Calculate the distance from the two bytes
-    Serial.print("Distance: ");
-    Serial.print(mmDist); // Print in millimeters
-    Serial.print("mm  /  ");
-    Serial.print(mmDist / 25.4, 2); // Print in inches
-    Serial.println("in");
-
   } else {
     Serial1.flush(); // Flush the buffer until valid start byte
   }
@@ -133,22 +133,17 @@ void loop(void) {
   millis_now = millis();
 
   // Print out distance
-  Serial.print("Time: ");
   Serial.print(real_time);
-  Serial.print(", Distance(mm): ");
-  Serial.print(mmDist);
+  Serial.print(",");
+  Serial.print(millis_now);
+  Serial.print(",");
+  Serial.println(mmDist);
 
   // Start SD stuff
   File myFile;
 
-  // Initialize the library
-  if (!sd.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
-    Serial.println("failed to open card");
-    return;
-  }
-
   // open the file for write at end like the "Native SD library"
-  if (!myFile.open("distance.txt", O_RDWR | O_CREAT | O_AT_END)) {
+  if (!myFile.open("depth.txt", O_RDWR | O_CREAT | O_AT_END)) {
     Serial.println("opening test.txt for write failed");
     return;
   }
@@ -158,7 +153,7 @@ void loop(void) {
   myFile.print(",");
   myFile.print(millis_now);
   myFile.print(",");
-  myFile.print(mmDist);
+  myFile.println(mmDist);
   myFile.close();
 
   delay(900);

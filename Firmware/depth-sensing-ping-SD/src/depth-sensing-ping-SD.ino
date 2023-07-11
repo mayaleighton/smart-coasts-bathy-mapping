@@ -7,8 +7,8 @@
  * RX/TRIG - connect to digital pin 12.  Can be any digital pin
  * TX/ECHO - connect to digital pin 13.  Can be any digital pin
  */
-const int TRIG_PIN = 15;
-const int ECHO_PIN = 16;
+const int TRIG_PIN = A2;
+const int ECHO_PIN = A1;
 float temp_In_C = 20.0;  // Can enter actual air temp here for maximum accuracy
 float speed_Of_Sound;          // Calculated speed of sound based on air temp
 float distance_per_usec;      // Distance sound travels in one microsecond
@@ -38,6 +38,8 @@ SYSTEM_THREAD(ENABLED);
 //=============================================================================== 
 void setup() {
 
+  delay(2500); // delay  for serial connection
+
   // Set up trigger and echo pins
   pinMode(TRIG_PIN,OUTPUT);
   pinMode(ECHO_PIN,INPUT);
@@ -59,7 +61,7 @@ void setup() {
 
   // Start SD stuff
   // open the file for write at end like the "Native SD library"
-  if (!myFile.open("depth.csv", O_RDWR | O_CREAT | O_AT_END)) {
+  if (!myFile.open("depth.txt", O_RDWR | O_CREAT | O_AT_END)) {
     Serial.println("opening test.txt for write failed");
     return;
   }
@@ -104,7 +106,7 @@ void loop() {
   }
 
   // open the file for write at end like the "Native SD library"
-  if (!myFile.open("depth.csv", O_RDWR | O_CREAT | O_AT_END)) {
+  if (!myFile.open("depth.txt", O_RDWR | O_CREAT | O_AT_END)) {
     Serial.println("opening test.txt for write failed");
     return;
   }

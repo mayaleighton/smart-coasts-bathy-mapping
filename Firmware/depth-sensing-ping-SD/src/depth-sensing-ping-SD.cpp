@@ -16,8 +16,8 @@
 void setup();
 void loop();
 #line 10 "/Users/pjb/Dropbox/smart-coasts-bathy-mapping/Firmware/depth-sensing-ping-SD/src/depth-sensing-ping-SD.ino"
-const int TRIG_PIN = 12;
-const int ECHO_PIN = 13;
+const int TRIG_PIN = A2;
+const int ECHO_PIN = A1;
 float temp_In_C = 20.0;  // Can enter actual air temp here for maximum accuracy
 float speed_Of_Sound;          // Calculated speed of sound based on air temp
 float distance_per_usec;      // Distance sound travels in one microsecond
@@ -47,6 +47,8 @@ SYSTEM_THREAD(ENABLED);
 //=============================================================================== 
 void setup() {
 
+  delay(2500); // delay  for serial connection
+
   // Set up trigger and echo pins
   pinMode(TRIG_PIN,OUTPUT);
   pinMode(ECHO_PIN,INPUT);
@@ -68,7 +70,7 @@ void setup() {
 
   // Start SD stuff
   // open the file for write at end like the "Native SD library"
-  if (!myFile.open("depth.csv", O_RDWR | O_CREAT | O_AT_END)) {
+  if (!myFile.open("depth.txt", O_RDWR | O_CREAT | O_AT_END)) {
     Serial.println("opening test.txt for write failed");
     return;
   }
@@ -89,13 +91,14 @@ void loop() {
   real_time = Time.now();
   millis_now = millis();
  
+  // Send pulse and listen to response
   digitalWrite(TRIG_PIN, HIGH);       // Set trigger pin HIGH 
   delayMicroseconds(20);              // Hold pin HIGH for 20 uSec
   digitalWrite(TRIG_PIN, LOW);        // Return trigger pin back to LOW again.
   duration = pulseIn(ECHO_PIN,HIGH);  // Measure time in uSec for echo to come back.
  
   // convert the time data into a distance in centimeters
-  depth_cm = duration/2 * distance_per_usec;
+  depth_cm = duration/2*distance_per_usec;
    
   // Print results, good or bad
   if (depth_cm <= 0){
@@ -112,7 +115,7 @@ void loop() {
   }
 
   // open the file for write at end like the "Native SD library"
-  if (!myFile.open("depth.csv", O_RDWR | O_CREAT | O_AT_END)) {
+  if (!myFile.open("depth.txt", O_RDWR | O_CREAT | O_AT_END)) {
     Serial.println("opening test.txt for write failed");
     return;
   }

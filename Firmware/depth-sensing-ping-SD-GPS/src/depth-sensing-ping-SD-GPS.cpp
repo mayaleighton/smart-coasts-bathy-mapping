@@ -17,8 +17,8 @@ void setup();
 void loop();
 float getDepth();
 #line 10 "/Users/pjb/Dropbox/smart-coasts-bathy-mapping/Firmware/depth-sensing-ping-SD-GPS/src/depth-sensing-ping-SD-GPS.ino"
-const int TRIG_PIN = 15;
-const int ECHO_PIN = 16;
+const int TRIG_PIN = A2;
+const int ECHO_PIN = A1;
 float temp_In_C = 20.0; // Can enter actual air temp here for maximum accuracy
 float speed_Of_Sound; // Calculated speed of sound based on air temp
 float distance_per_usec; // Distance sound travels in one microsecond

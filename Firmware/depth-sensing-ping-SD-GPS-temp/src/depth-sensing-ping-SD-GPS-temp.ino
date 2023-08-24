@@ -34,10 +34,11 @@ Adafruit_GPS GPS( & GPSSerial);
 uint32_t timer = millis();
 
 // ------------------------ Temperature ------------------------------------------
-#include <Adafruit_MAX31865.h>
-const int TEMP_CHIP_SELECT = D6;
-Adafruit_MAX31865 sensor = Adafruit_MAX31865(TEMP_CHIP_SELECT);
-#define RREF 430.0 //Rref resistor value = 430.0
+int sensorPin = A4; //the analog pin the TMP36's Vout (sense) pin is connected to
+// #include <Adafruit_MAX31865.h>
+// const int TEMP_CHIP_SELECT = D6;
+// Adafruit_MAX31865 sensor = Adafruit_MAX31865(TEMP_CHIP_SELECT);
+// #define RREF 430.0 //Rref resistor value = 430.0
 
 
 //-------------------------- LED Setup -------------------------------------------
@@ -70,8 +71,6 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Adafruit MAX31865 PT100 Sensor Test!");
 
-    sensor.begin(MAX31865_3WIRE);
-
     // Set up GPS
     GPS.begin(9600);
 
@@ -91,7 +90,6 @@ void setup() {
         Serial.println("failed to open card");
         return;
     }
-
 
 }
 
@@ -306,47 +304,23 @@ float getDepth() {
 /* ---------------------- GET TEMP FUNCTION ---------------------- */
 float getTemp() {
 
-    // read temp data
-    uint16_t rtd = sensor.readRTD();
+    //getting the voltage reading from the temperature sensor
+    int reading = analogRead(sensorPin);  
 
-    Serial.print("RTD value: "); Serial.println(rtd);
+    Serial.println(reading);
+    
+    // converting that reading to voltage, for 3.3v arduino use 3.3
+    float voltage = reading * 3.3;
+    voltage /= 4096.0; 
+    
+    // print out the voltage
+    Serial.print(voltage); Serial.println(" volts");
+    
+    // now print out the temperature
+    float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
+                                                  //to degrees ((voltage - 500mV) times 100)
+    Serial.print(temperatureC); Serial.println(" degrees C");
 
-    float ratio = rtd;
-    ratio /= 32768;
-    Serial.print("Ratio = "); Serial.println(ratio,8);
-
-    Serial.print("Resistance = "); Serial.println(RREF*ratio,8);
-
-    float temp = sensor.temperature(100, RREF);
-    Serial.print("Temperature = "); Serial.println(temp);
-
-    // Check and print any faults
-    uint8_t fault = sensor.readFault();
-    if (fault) {
-        Serial.print("Fault 0x"); Serial.println(fault, HEX);
-        if (fault & MAX31865_FAULT_HIGHTHRESH) {
-        Serial.println("RTD High Threshold");
-        }
-        if (fault & MAX31865_FAULT_LOWTHRESH) {
-        Serial.println("RTD Low Threshold");
-        }
-        if (fault & MAX31865_FAULT_REFINLOW) {
-        Serial.println("REFIN- > 0.85 x Bias");
-        }
-        if (fault & MAX31865_FAULT_REFINHIGH) {
-        Serial.println("REFIN- < 0.85 x Bias - FORCE- open");
-        }
-        if (fault & MAX31865_FAULT_RTDINLOW) {
-        Serial.println("RTDIN- < 0.85 x Bias - FORCE- open");
-        }
-        if (fault & MAX31865_FAULT_OVUV) {
-        Serial.println("Under/Over voltage");
-        }
-        sensor.clearFault();
-    }
-    Serial.println();
-    delay(1000);
-
-    return temp;
+    return temperatureC;
 
 }

@@ -234,6 +234,13 @@ void printToFile() {
       dataFile.print('0');
     }
     dataFile.print(GPS.seconds, DEC);
+    dataFile.print(".");
+    if (GPS.milliseconds < 10) {
+      dataFile.print("00");
+    } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
+      dataFile.print("0");
+    }
+    dataFile.println(GPS.milliseconds);
     dataFile.print(",");
 
     // Elapsed Time

@@ -149,6 +149,7 @@ void loop() {
         Serial.print(" quality: ");
         Serial.println((int) GPS.fixquality);
 
+        getDepth();
 
         // If GPS gets a fix, print out and save good data
         if (GPS.fix) {  
@@ -348,3 +349,90 @@ float getTemp() {
     return temp;
 
 }
+
+// /***************************************************
+//   This is a library for the Adafruit PT100/P1000 RTD Sensor w/MAX31865
+
+//   Designed specifically to work with the Adafruit RTD Sensor
+//   ----> https://www.adafruit.com/products/3328
+
+//   This sensor uses SPI to communicate, 4 pins are required to
+//   interface
+//   Adafruit invests time and resources providing this open source code,
+//   please support Adafruit and open-source hardware by purchasing
+//   products from Adafruit!
+
+//   Written by Limor Fried/Ladyada for Adafruit Industries.
+//   BSD license, all text above must be included in any redistribution
+//  ****************************************************/
+
+// #include <Adafruit_MAX31865.h>
+
+// // Arduino way
+// // Use software SPI: CS, DI, DO, CLK
+// // Adafruit_MAX31865 sensor = Adafruit_MAX31865(10, 11, 12, 13);
+// // use hardware SPI, just pass in the CS pin
+// //Adafruit_MAX31865 max = Adafruit_MAX31865(10);
+
+// // Particle way
+// const int TEMP_CHIP_SELECT = D6;
+// Adafruit_MAX31865 sensor = Adafruit_MAX31865(TEMP_CHIP_SELECT);
+// // CRITICAL NOTE: To use SPI1, changed Adafruit_MAX31865.cpp line 57 to SPI1.begin();
+// // Was SPI.begin(), not SPI1.begin()
+// // EVERYWHERE that was SPI has to be changed to SPI1 in that library!!! 
+// // but don't do find and replace because "spi" shows up in other places where it shouldn't be changed
+// // instead, manually look for instances of capital SPI.something and change to SPI1.something
+
+// // The value of the Rref resistor. Use 430.0!
+// #define RREF 430.0
+
+// SYSTEM_MODE(MANUAL);
+// SYSTEM_THREAD(ENABLED);
+
+// void setup() {
+//   Cellular.off();
+  
+//   Serial.begin(115200);
+//   Serial.println("Adafruit MAX31865 PT100 Sensor Test!");
+
+//   sensor.begin(MAX31865_3WIRE);  // set to 2WIRE or 4WIRE as necessary
+// }
+
+
+// void loop() {
+//   uint16_t rtd = sensor.readRTD();
+
+//   Serial.print("RTD value: "); Serial.println(rtd);
+//   float ratio = rtd;
+//   ratio /= 32768;
+//   Serial.print("Ratio = "); Serial.println(ratio,8);
+//   Serial.print("Resistance = "); Serial.println(RREF*ratio,8);
+//   Serial.print("Temperature = "); Serial.println(sensor.temperature(100, RREF));
+
+//   // Check and print any faults
+//   uint8_t fault = sensor.readFault();
+//   if (fault) {
+//     Serial.print("Fault 0x"); Serial.println(fault, HEX);
+//     if (fault & MAX31865_FAULT_HIGHTHRESH) {
+//       Serial.println("RTD High Threshold");
+//     }
+//     if (fault & MAX31865_FAULT_LOWTHRESH) {
+//       Serial.println("RTD Low Threshold");
+//     }
+//     if (fault & MAX31865_FAULT_REFINLOW) {
+//       Serial.println("REFIN- > 0.85 x Bias");
+//     }
+//     if (fault & MAX31865_FAULT_REFINHIGH) {
+//       Serial.println("REFIN- < 0.85 x Bias - FORCE- open");
+//     }
+//     if (fault & MAX31865_FAULT_RTDINLOW) {
+//       Serial.println("RTDIN- < 0.85 x Bias - FORCE- open");
+//     }
+//     if (fault & MAX31865_FAULT_OVUV) {
+//       Serial.println("Under/Over voltage");
+//     }
+//     sensor.clearFault();
+//   }
+//   Serial.println();
+//   delay(1000);
+// }

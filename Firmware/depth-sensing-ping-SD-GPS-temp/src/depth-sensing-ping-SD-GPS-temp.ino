@@ -8,6 +8,11 @@
 * TX/ECHO - connect to digital pin 13. Can be any digital pin
 */
 
+/* TODO: 
+* make temperature global to access across functions
+* log temperature
+* 
+*/
 
 const int TRIG_PIN = A2;
 const int ECHO_PIN = A1;
@@ -159,10 +164,10 @@ void loop() {
 
             Serial.print("Location: ");
             Serial.print(GPS.latitude, 4);
-            Serial.print(GPS.lat);
+            Serial.print(GPS.lat); // N or S
             Serial.print(", ");
             Serial.print(GPS.longitude, 4);
-            Serial.println(GPS.lon);
+            Serial.println(GPS.lon); // E or W
             Serial.print("Altitude: ");
             Serial.println(GPS.altitude);
             Serial.print("Speed: ");

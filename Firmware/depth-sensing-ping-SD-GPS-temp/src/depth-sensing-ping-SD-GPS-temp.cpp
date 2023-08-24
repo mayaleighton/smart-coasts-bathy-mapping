@@ -19,6 +19,8 @@ void setup();
 void loop();
 float getDepth(float temp_in);
 float getTemp();
+void printToFile();
+void serialPrintGPSTime();
 #line 12 "/Users/pjb/Dropbox/Smart_Coasts_Sensors/smart-coasts-bathy-mapping/Firmware/depth-sensing-ping-SD-GPS-temp/src/depth-sensing-ping-SD-GPS-temp.ino"
 const int TRIG_PIN = A2;
 const int ECHO_PIN = A1;
@@ -125,39 +127,7 @@ void loop() {
         timer = millis(); // reset the timer
 
 
-        Serial.print("\nTime: ");
-        if (GPS.hour < 10) {
-            Serial.print('0');
-        }
-        Serial.print(GPS.hour, DEC);
-        Serial.print(':');
-        if (GPS.minute < 10) {
-            Serial.print('0');
-        }
-        Serial.print(GPS.minute, DEC);
-        Serial.print(':');
-        if (GPS.seconds < 10) {
-            Serial.print('0');
-        }
-        Serial.print(GPS.seconds, DEC);
-        Serial.print('.');
-        if (GPS.milliseconds < 10) {
-            Serial.print("00");
-        }
-        else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
-            Serial.print("0");
-        }
-        Serial.println(GPS.milliseconds);
-        Serial.print("Date: ");
-        Serial.print(GPS.month, DEC);
-        Serial.print('/');
-        Serial.print(GPS.day, DEC);
-        Serial.print("/20");
-        Serial.println(GPS.year, DEC);
-        Serial.print("Fix: ");
-        Serial.print((int) GPS.fix);
-        Serial.print(" quality: ");
-        Serial.println((int) GPS.fixquality);
+        serialPrintGPSTime();
 
         temperatureC = getTemp();
         depth = getDepth(temperatureC);
@@ -168,114 +138,16 @@ void loop() {
             led_state = !led_state;
             digitalWrite(MY_LED, led_state); // turn the LED on (HIGH is the voltage level)
 
-
             Serial.print("Location: ");
             Serial.print(GPS.latitude, 4);
             Serial.print(GPS.lat);
             Serial.print(", ");
             Serial.print(GPS.longitude, 4);
             Serial.println(GPS.lon);
-            Serial.print("Altitude: ");
-            Serial.println(GPS.altitude);
-            Serial.print("Speed: ");
-            Serial.print(GPS.speed);
-            Serial.print("Angle: ");
-            Serial.print(GPS.angle);
-
-
-            if (!filenameCreated) {
-                // Get year, month, and day for filename
-                int filenum = 0; // start at zero and increment by one if file exists
-                sprintf(filename, "%02d%02d%02d%02d.csv", GPS.year, GPS.month, GPS.day, filenum);
-
-
-                // Check for existence of filename with current filenum
-                while (SD.exists(filename)) {
-                filenum++;
-                sprintf(filename, "%02d%02d%02d%02d.csv", GPS.year, GPS.month, GPS.day, filenum);
-                }
-                filenameCreated = true;
-            }
-            Serial.println(filename);
-
-
-            // Create filename
-            // Open the file: SPI SD comms
-            File dataFile = SD.open(filename, FILE_WRITE);
-
-            // if the file is available, write to it:
-            if (dataFile) {
-                // Date
-                dataFile.print(GPS.month, DEC);
-                dataFile.print('/');
-                dataFile.print(GPS.day, DEC);
-                dataFile.print("/20");
-                dataFile.print(GPS.year, DEC);
-                dataFile.print(",");
-
-
-                // Time
-                dataFile.print(GPS.hour, DEC);
-                dataFile.print(':');
-                if (GPS.minute < 10) {
-                dataFile.print('0');
-                }
-                dataFile.print(GPS.minute, DEC);
-                dataFile.print(':');
-                if (GPS.seconds < 10) {
-                dataFile.print('0');
-                }
-                dataFile.print(GPS.seconds, DEC);
-                dataFile.print(",");
-
-
-                // Elapsed Time
-                dataFile.print(millis() / 1000);
-                dataFile.print(",");
-
-
-                // Location
-                dataFile.print(GPS.latitude, 4);
-                dataFile.print(",");
-                dataFile.print(GPS.lat); // N or S
-                dataFile.print(",");
-                dataFile.print(GPS.longitude, 4);
-                dataFile.print(",");
-                dataFile.print(GPS.lon); // E or W
-                dataFile.print(",");
-                
-
-                // Temperature
-                dataFile.print(temperatureC);
-                dataFile.print(",");
-
-
-                // Depth/distance
-                dataFile.print(depth);
-                dataFile.print(",");
-
-
-                //Altitude
-                dataFile.print(GPS.altitude);
-                dataFile.print(",");
-
-
-                dataFile.print(GPS.speed);
-                dataFile.print(",");
-
-
-                //dataFile.println(GPS.angle);
-                dataFile.println(GPS.angle);
-
-
-                dataFile.close();
-            }
-            // if the file isn't open, pop up an error:
-            else {
-                Serial.println("error opening datalog.txt");
-            }
 
         }
+
+        printToFile();
 
     }
 
@@ -302,17 +174,11 @@ float getDepth(float temp_in) {
     // convert the time data into a distance in centimeters
     depth_cm = duration / 2 * distance_per_usec;
 
-
     if (depth_cm <= 0) {
         // bad values
-        Serial.println("Out of range");
+        Serial.println("Out of depth range");
     }
-    else {
-        // good values
-        Serial.print(real_time);
-        Serial.print(",");
-        Serial.print(millis());
-    }
+
     return depth_cm;
 
 }
@@ -340,4 +206,136 @@ float getTemp() {
 
     return temperatureC;
 
+}
+
+/* ---------------------- PRINT TO SD CARD FUNCTION ---------------------- */
+void printToFile() {
+
+  if (!filenameCreated) {
+    // Get year, month, and day for filename
+    int filenum = 0; // start at zero and increment by one if file exists
+    sprintf(filename, "%02d%02d%02d%02d.csv", GPS.year, GPS.month, GPS.day, filenum);
+
+    // Check for existence of filename with current filenum
+    while (SD.exists(filename)) {
+      filenum++;
+      sprintf(filename, "%02d%02d%02d%02d.csv", GPS.year, GPS.month, GPS.day, filenum);
+    }
+    filenameCreated = true;
+  }
+
+  Serial.println(filename);
+
+  // Create filename
+  // Open the file: SPI SD comms
+  File dataFile = SD.open(filename, FILE_WRITE);
+
+  // if the file is available, write to it:
+  if (dataFile) {
+    // Date
+    dataFile.print(GPS.month, DEC);
+    dataFile.print('/');
+    dataFile.print(GPS.day, DEC);
+    dataFile.print("/20");
+    dataFile.print(GPS.year, DEC);
+    dataFile.print(",");
+
+    // Time
+    dataFile.print(GPS.hour, DEC);
+    dataFile.print(':');
+    if (GPS.minute < 10) {
+      dataFile.print('0');
+    }
+    dataFile.print(GPS.minute, DEC);
+    dataFile.print(':');
+    if (GPS.seconds < 10) {
+      dataFile.print('0');
+    }
+    dataFile.print(GPS.seconds, DEC);
+    dataFile.print(",");
+
+    // Elapsed Time
+    dataFile.print(millis() / 1000);
+    dataFile.print(",");
+
+    // Location
+    dataFile.print(GPS.latitude, 4);
+    dataFile.print(",");
+    dataFile.print(GPS.lat); // N or S
+    dataFile.print(",");
+    dataFile.print(GPS.longitude, 4);
+    dataFile.print(",");
+    dataFile.print(GPS.lon); // E or W
+    dataFile.print(",");
+
+    // Temperature
+    dataFile.print(temperatureC);
+    dataFile.print(",");
+
+    // Depth/distance
+    dataFile.print(depth);
+    dataFile.print(",");
+
+    //Altitude
+    dataFile.print(GPS.altitude);
+    dataFile.print(",");
+
+    dataFile.print(GPS.speed);
+    dataFile.print(",");
+
+    //dataFile.println(GPS.angle);
+    dataFile.println(GPS.angle);
+
+    dataFile.close();
+  }
+  // if the file isn't open, pop up an error:
+  else {
+    Serial.println("error opening datalog.txt");
+  }
+}
+
+void serialPrintGPSTime() {
+  Serial.print("\nTime: ");
+  
+  // Hour
+  if (GPS.hour < 10) {
+    Serial.print('0');
+  }
+  Serial.print(GPS.hour, DEC);
+
+  Serial.print(':');
+
+  // Minute
+  if (GPS.minute < 10) {
+    Serial.print('0');
+  }
+  Serial.print(GPS.minute, DEC);
+
+  Serial.print(':');
+
+  // Seconds
+  if (GPS.seconds < 10) {
+    Serial.print('0');
+  }
+  Serial.print(GPS.seconds, DEC);
+  Serial.print('.');
+  if (GPS.milliseconds < 10) {
+    Serial.print("00");
+  } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
+    Serial.print("0");
+  }
+  Serial.println(GPS.milliseconds);
+  
+  Serial.print("Date: ");
+  Serial.print(GPS.month, DEC);
+  Serial.print('/');
+  Serial.print(GPS.day, DEC);
+  Serial.print("/20");
+  Serial.println(GPS.year, DEC);
+  
+  Serial.print("Fix: ");
+  Serial.print((int) GPS.fix);
+  
+  Serial.print(" quality: ");
+  Serial.println((int) GPS.fixquality);
 }

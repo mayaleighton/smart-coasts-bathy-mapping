@@ -1,52 +1,104 @@
-/***************************************************
-  This is a library for the Adafruit PT100/P1000 RTD Sensor w/MAX31865
+/*
+* JSN-SR04T Ultrasonic Range Finder Ping Mode Test
+*
+* Exercises the ultrasonic range finder module and prints out measured distance
+* 5V - connect to 5V
+* GND - connect to ground
+* RX/TRIG - connect to digital pin 12. Can be any digital pin
+* TX/ECHO - connect to digital pin 13. Can be any digital pin
+*/
 
-  Designed specifically to work with the Adafruit RTD Sensor
-  ----> https://www.adafruit.com/products/3328
 
-  This sensor uses SPI to communicate, 4 pins are required to
-  interface
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
+const int TRIG_PIN = A2;
+const int ECHO_PIN = A1;
+float speed_Of_Sound; // Calculated speed of sound based on air temp
+float distance_per_usec; // Distance sound travels in one microsecond
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
 
+long real_time;
+int millis_now;
+
+
+// ------------------ SD SPI Configuration Details --------------------------------
+#include "SdFat.h"
+const int SD_CHIP_SELECT = D5;
+SdFat SD;
+
+char filename[] = "YYMMDD00.csv"; // template filename (year, month, day, 00–99 file number for that day)
+bool filenameCreated = false;
+
+// ---------------------------- GPS ----------------------------------------------
+#include <Adafruit_GPS.h>
+#define GPSSerial Serial1
+Adafruit_GPS GPS( & GPSSerial);
+uint32_t timer = millis();
+
+// ------------------------ Temperature ------------------------------------------
 #include <Adafruit_MAX31865.h>
-
-// Arduino way
-// Use software SPI: CS, DI, DO, CLK
-// Adafruit_MAX31865 sensor = Adafruit_MAX31865(10, 11, 12, 13);
-// use hardware SPI, just pass in the CS pin
-//Adafruit_MAX31865 max = Adafruit_MAX31865(10);
-
-// Particle way
 const int TEMP_CHIP_SELECT = D6;
 Adafruit_MAX31865 sensor = Adafruit_MAX31865(TEMP_CHIP_SELECT);
-// CRITICAL NOTE: To use SPI1, changed Adafruit_MAX31865.cpp line 57 to SPI1.begin();
-// Was SPI.begin(), not SPI1.begin()
-// EVERYWHERE that was SPI has to be changed to SPI1 in that library!!! 
-// but don't do find and replace because "spi" shows up in other places where it shouldn't be changed
-// instead, manually look for instances of capital SPI.something and change to SPI1.something
+#define RREF 430.0 //Rref resistor value = 430.0
 
-// The value of the Rref resistor. Use 430.0!
-#define RREF 430.0
 
-SYSTEM_MODE(MANUAL);
+//-------------------------- LED Setup -------------------------------------------
+const pin_t MY_LED = D7; // blink to let us know you're alive
+bool led_state = HIGH; // starting state
+
+
+// Global objects
+FuelGauge batteryMonitor;
+
+
+// To use Particle devices without cloud connectivity
+SYSTEM_MODE(SEMI_AUTOMATIC);
 SYSTEM_THREAD(ENABLED);
 
-void setup() {
-  Cellular.off();
-  
-  Serial.begin(115200);
-  Serial.println("Adafruit MAX31865 PT100 Sensor Test!");
 
-  sensor.begin(MAX31865_3WIRE);  // set to 2WIRE or 4WIRE as necessary
+//===============================================================================
+// INITIALIZATION
+//===============================================================================
+void setup() {
+
+    pinMode(MY_LED, OUTPUT);
+
+    // Set up trigger and echo pins
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
+
+
+    //Serial.begin(9600);
+    Serial.begin(115200);
+    Serial.println("Adafruit MAX31865 PT100 Sensor Test!");
+
+    sensor.begin(MAX31865_3WIRE);
+
+    // Set up GPS
+    GPS.begin(9600);
+
+    // uncomment next line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+    GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+
+    // uncomment next line to turn on only the "minimum recommended" data
+    //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+
+    // Set the update rate
+    GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+    // For the parsing code to work nicely and have time to sort thru the data, and print it out we don't suggest using anything higher than 1 Hz
+    
+
+    // Initialize the SD library
+    if (!SD.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
+        Serial.println("failed to open card");
+        return;
+    }
+
+
 }
 
 
+//===============================================================================
+// MAIN
+//===============================================================================
 void loop() {
 
     // read data from the GPS in the 'main loop'
@@ -96,6 +148,8 @@ void loop() {
         Serial.print((int) GPS.fix);
         Serial.print(" quality: ");
         Serial.println((int) GPS.fixquality);
+
+        getDepth();
 
 
         // If GPS gets a fix, print out and save good data
@@ -296,90 +350,3 @@ float getTemp() {
     return temp;
 
 }
-
-// /***************************************************
-//   This is a library for the Adafruit PT100/P1000 RTD Sensor w/MAX31865
-
-//   Designed specifically to work with the Adafruit RTD Sensor
-//   ----> https://www.adafruit.com/products/3328
-
-//   This sensor uses SPI to communicate, 4 pins are required to
-//   interface
-//   Adafruit invests time and resources providing this open source code,
-//   please support Adafruit and open-source hardware by purchasing
-//   products from Adafruit!
-
-//   Written by Limor Fried/Ladyada for Adafruit Industries.
-//   BSD license, all text above must be included in any redistribution
-//  ****************************************************/
-
-// #include <Adafruit_MAX31865.h>
-
-// // Arduino way
-// // Use software SPI: CS, DI, DO, CLK
-// // Adafruit_MAX31865 sensor = Adafruit_MAX31865(10, 11, 12, 13);
-// // use hardware SPI, just pass in the CS pin
-// //Adafruit_MAX31865 max = Adafruit_MAX31865(10);
-
-// // Particle way
-// const int TEMP_CHIP_SELECT = D6;
-// Adafruit_MAX31865 sensor = Adafruit_MAX31865(TEMP_CHIP_SELECT);
-// // CRITICAL NOTE: To use SPI1, changed Adafruit_MAX31865.cpp line 57 to SPI1.begin();
-// // Was SPI.begin(), not SPI1.begin()
-// // EVERYWHERE that was SPI has to be changed to SPI1 in that library!!! 
-// // but don't do find and replace because "spi" shows up in other places where it shouldn't be changed
-// // instead, manually look for instances of capital SPI.something and change to SPI1.something
-
-// // The value of the Rref resistor. Use 430.0!
-// #define RREF 430.0
-
-// SYSTEM_MODE(MANUAL);
-// SYSTEM_THREAD(ENABLED);
-
-// void setup() {
-//   Cellular.off();
-  
-//   Serial.begin(115200);
-//   Serial.println("Adafruit MAX31865 PT100 Sensor Test!");
-
-//   sensor.begin(MAX31865_3WIRE);  // set to 2WIRE or 4WIRE as necessary
-// }
-
-
-// void loop() {
-//   uint16_t rtd = sensor.readRTD();
-
-//   Serial.print("RTD value: "); Serial.println(rtd);
-//   float ratio = rtd;
-//   ratio /= 32768;
-//   Serial.print("Ratio = "); Serial.println(ratio,8);
-//   Serial.print("Resistance = "); Serial.println(RREF*ratio,8);
-//   Serial.print("Temperature = "); Serial.println(sensor.temperature(100, RREF));
-
-//   // Check and print any faults
-//   uint8_t fault = sensor.readFault();
-//   if (fault) {
-//     Serial.print("Fault 0x"); Serial.println(fault, HEX);
-//     if (fault & MAX31865_FAULT_HIGHTHRESH) {
-//       Serial.println("RTD High Threshold");
-//     }
-//     if (fault & MAX31865_FAULT_LOWTHRESH) {
-//       Serial.println("RTD Low Threshold");
-//     }
-//     if (fault & MAX31865_FAULT_REFINLOW) {
-//       Serial.println("REFIN- > 0.85 x Bias");
-//     }
-//     if (fault & MAX31865_FAULT_REFINHIGH) {
-//       Serial.println("REFIN- < 0.85 x Bias - FORCE- open");
-//     }
-//     if (fault & MAX31865_FAULT_RTDINLOW) {
-//       Serial.println("RTDIN- < 0.85 x Bias - FORCE- open");
-//     }
-//     if (fault & MAX31865_FAULT_OVUV) {
-//       Serial.println("Under/Over voltage");
-//     }
-//     sensor.clearFault();
-//   }
-//   Serial.println();
-//   delay(1000);
-// }

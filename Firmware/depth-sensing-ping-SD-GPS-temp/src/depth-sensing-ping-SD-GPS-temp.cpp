@@ -21,6 +21,7 @@ float getDepth(float temp_in);
 float getTemp();
 void printToFile();
 void serialPrintGPSTime();
+void serialPrintGPSLoc();
 #line 12 "/Users/pjb/Dropbox/Smart_Coasts_Sensors/smart-coasts-bathy-mapping/Firmware/depth-sensing-ping-SD-GPS-temp/src/depth-sensing-ping-SD-GPS-temp.ino"
 const int TRIG_PIN = A2;
 const int ECHO_PIN = A1;
@@ -138,12 +139,7 @@ void loop() {
             led_state = !led_state;
             digitalWrite(MY_LED, led_state); // turn the LED on (HIGH is the voltage level)
 
-            Serial.print("Location: ");
-            Serial.print(GPS.latitude, 4);
-            Serial.print(GPS.lat);
-            Serial.print(", ");
-            Serial.print(GPS.longitude, 4);
-            Serial.println(GPS.lon);
+            serialPrintGPSLoc();
 
         }
 
@@ -338,4 +334,13 @@ void serialPrintGPSTime() {
   
   Serial.print(" quality: ");
   Serial.println((int) GPS.fixquality);
+}
+
+void serialPrintGPSLoc() {
+  Serial.print("Location: ");
+  Serial.print(GPS.latitude, 4);
+  Serial.print(GPS.lat);
+  Serial.print(", ");
+  Serial.print(GPS.longitude, 4);
+  Serial.println(GPS.lon);
 }

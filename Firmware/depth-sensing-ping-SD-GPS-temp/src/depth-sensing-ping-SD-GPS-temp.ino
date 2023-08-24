@@ -47,7 +47,7 @@ const pin_t MY_LED = D7; // blink to let us know you're alive
 bool led_state = HIGH; // starting state
 
 
-// Global objects
+// Global objects; TODO: save power stats
 FuelGauge batteryMonitor;
 
 
@@ -125,12 +125,7 @@ void loop() {
             led_state = !led_state;
             digitalWrite(MY_LED, led_state); // turn the LED on (HIGH is the voltage level)
 
-            Serial.print("Location: ");
-            Serial.print(GPS.latitude, 4);
-            Serial.print(GPS.lat);
-            Serial.print(", ");
-            Serial.print(GPS.longitude, 4);
-            Serial.println(GPS.lon);
+            serialPrintGPSLoc();
 
         }
 
@@ -270,7 +265,7 @@ void printToFile() {
     dataFile.print(GPS.speed);
     dataFile.print(",");
 
-    //dataFile.println(GPS.angle);
+    // Angle
     dataFile.println(GPS.angle);
 
     dataFile.close();
@@ -325,4 +320,13 @@ void serialPrintGPSTime() {
   
   Serial.print(" quality: ");
   Serial.println((int) GPS.fixquality);
+}
+
+void serialPrintGPSLoc() {
+  Serial.print("Location: ");
+  Serial.print(GPS.latitude, 4);
+  Serial.print(GPS.lat);
+  Serial.print(", ");
+  Serial.print(GPS.longitude, 4);
+  Serial.println(GPS.lon);
 }

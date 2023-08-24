@@ -13,7 +13,8 @@ const int TRIG_PIN = A2;
 const int ECHO_PIN = A1;
 float speed_Of_Sound; // Calculated speed of sound based on air temp
 float distance_per_usec; // Distance sound travels in one microsecond
-
+float temperatureC;
+float depth;
 
 long real_time;
 int millis_now;
@@ -147,8 +148,8 @@ void loop() {
         Serial.print(" quality: ");
         Serial.println((int) GPS.fixquality);
 
-        getDepth();
-
+        temperatureC = getTemp();
+        depth = getDepth(temperatureC);
 
         // If GPS gets a fix, print out and save good data
         if (GPS.fix) {  
@@ -231,10 +232,15 @@ void loop() {
                 dataFile.print(",");
                 dataFile.print(GPS.lon); // E or W
                 dataFile.print(",");
+                
+
+                // Temperature
+                dataFile.print(temperatureC);
+                dataFile.print(",");
 
 
                 // Depth/distance
-                dataFile.print(getDepth());
+                dataFile.print(depth);
                 dataFile.print(",");
 
 
@@ -267,7 +273,7 @@ void loop() {
 
 
 /* ---------------------- GET DEPTH FUNCTION ---------------------- */
-float getDepth() {
+float getDepth(float temp_in) {
     float duration, depth_cm;
 
     // Send pulse and listen to response
@@ -276,8 +282,9 @@ float getDepth() {
     digitalWrite(TRIG_PIN, LOW); // Return trigger pin back to LOW again.
     duration = pulseIn(ECHO_PIN, HIGH); // Measure time in uSec for echo to come back.
 
+    // Calculate speed of sound in freshwater using temperature; TODO: add salinity
+    speed_Of_Sound = 331.1 + (0.606 * temp_in);
 
-    speed_Of_Sound = 331.1 + (0.606 * getTemp());
     // Calculate the distance that sound travels in one microsecond in centimeters
     distance_per_usec = speed_Of_Sound / 10000.0;
 
@@ -296,7 +303,6 @@ float getDepth() {
         Serial.print(millis());
     }
     return depth_cm;
-
 
 }
 

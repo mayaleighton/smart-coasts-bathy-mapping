@@ -223,7 +223,7 @@ void printToFile() {
     } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
       dataFile.print("0");
     }
-    dataFile.println(GPS.milliseconds);
+    dataFile.print(GPS.milliseconds);
     dataFile.print(",");
 
     // Elapsed Time

@@ -49,6 +49,25 @@ SYSTEM_MODE(SEMI_AUTOMATIC);
 
 // Declare one of these as a global variable to manage the JSN-SR04 sensor
 JSN_SR04_Gen3 distanceSensor;
+float depth_cm;
+
+float distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
+    switch(result.status) {
+        case JSN_SR04_Gen3::DistanceResult::Status::SUCCESS:
+            Log.info("cm=%lf inch=%lf", result.cm(), result.inch());
+            depth_cm = result.cm();
+            break;
+
+        case JSN_SR04_Gen3::DistanceResult::Status::RANGE_ERROR:
+            Log.info("distance range error");
+            break;
+
+        default:
+            Log.info("distance error %d", result.status);
+            break;
+    }
+    return depth_cm;
+}
 
 
 //===============================================================================
@@ -112,7 +131,6 @@ void loop() {
         serialPrintGPSTime();
 
         temperatureC = getTemp();
-        depth = result.cm();
 
         // If GPS gets a fix, print out and save good data
         if (GPS.fix) {  
@@ -127,24 +145,6 @@ void loop() {
 
         printToFile(); 
 
-    }
-
-
-
-/* ---------------------- DISTNACE CALLBACK FUNCTION (printing---------------------- */
-float distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
-    switch(result.status) {
-        case JSN_SR04_Gen3::DistanceResult::Status::SUCCESS:
-            Serial.printf("cm=%f inch=%f", result.cm(), result.inch());
-            break;
-
-        case JSN_SR04_Gen3::DistanceResult::Status::RANGE_ERROR:
-            Serial.print("distance range error");
-            break;
-
-        default:
-            Serial.printf("distance error %f", result.status);
-            break;
     }
 
 }
@@ -245,7 +245,7 @@ void printToFile() {
     dataFile.print(",");
 
     // Depth/distance
-    dataFile.print(depth);
+    dataFile.print(depth_cm);
     dataFile.print(",");
 
     //Altitude

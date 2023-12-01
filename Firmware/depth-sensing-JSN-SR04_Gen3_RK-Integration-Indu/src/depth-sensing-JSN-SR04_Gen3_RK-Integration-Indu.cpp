@@ -13,10 +13,8 @@ void printToFile();
 void serialPrintGPSTime();
 void serialPrintGPSLoc();
 #line 3 "/Users/pjb/Dropbox/Smart_Coasts_Sensors/smart-coasts-bathy-mapping/Firmware/depth-sensing-JSN-SR04_Gen3_RK-Integration-Indu/src/depth-sensing-JSN-SR04_Gen3_RK-Integration-Indu.ino"
-const int TRIG_PIN = A2;
-const int ECHO_PIN = A1;
-const int UNUSED_PIN0 = A0;
-const int UNUSED_PIN3 = A3;
+SerialLogHandler logHandler;
+
 
 // ------------------ Global Variables --------------------------------
 float temperatureC;
@@ -60,11 +58,16 @@ FuelGauge batteryMonitor;
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
 
-// Declare one of these as a global variable to manage the JSN-SR04 sensor
+// ------------------------ Depth ------------------------------------------
+const int TRIG_PIN = A2;
+const int ECHO_PIN = A1;
+const int UNUSED_PIN0 = A0;
+const int UNUSED_PIN3 = A3;
+
 JSN_SR04_Gen3 distanceSensor;
 float depth_cm;
 
-float distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
+void distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
     switch(result.status) {
         case JSN_SR04_Gen3::DistanceResult::Status::SUCCESS:
             Log.info("cm=%lf inch=%lf", result.cm(), result.inch());
@@ -79,7 +82,6 @@ float distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
             Log.info("distance error %d", result.status);
             break;
     }
-    return depth_cm;
 }
 
 
@@ -114,7 +116,7 @@ void setup() {
     
         // Initialize the SD library
         if (!SD.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
-            Serial.println("failed to open card");
+            Log.info("failed to open card");
             return;
         }
 
@@ -168,19 +170,19 @@ float getTemp() {
     //getting the voltage reading from the temperature sensor
     int reading = analogRead(sensorPin);  
 
-    Serial.println(reading);
+    Log.info(reading);
     
     // converting that reading to voltage, for 3.3v arduino use 3.3
     float voltage = reading * 3.3;
     voltage /= 4096.0; 
     
     // print out the voltage
-    Serial.print(voltage); Serial.println(" volts");
+    Log.info(voltage); Log.info(" volts");
     
     // now print out the temperature
     float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
                                                   //to degrees ((voltage - 500mV) times 100)
-    Serial.print(temperatureC); Serial.println(" degrees C");
+    Log.info(temperatureC); Log.info(" degrees C");
 
     return temperatureC;
 
@@ -202,7 +204,7 @@ void printToFile() {
     filenameCreated = true;
   }
 
-  Serial.println(filename);
+  Log.info(filename);
 
   // Create filename
   // Open the file: SPI SD comms
@@ -236,7 +238,7 @@ void printToFile() {
     } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
       dataFile.print("0");
     }
-    dataFile.println(GPS.milliseconds);
+    dataFile.print(GPS.milliseconds);
     dataFile.print(",");
 
     // Elapsed Time
@@ -275,62 +277,62 @@ void printToFile() {
   }
   // if the file isn't open, pop up an error:
   else {
-    Serial.println("error opening datalog.txt");
+    Log.info("error opening datalog.txt");
   }
 }
 
 void serialPrintGPSTime() {
-  Serial.print("\nTime: ");
+  Log.info("\nTime: ");
   
   // Hour
   if (GPS.hour < 10) {
-    Serial.print('0');
+    Log.info('0');
   }
-  Serial.print(GPS.hour, DEC);
+  Log.info(GPS.hour, DEC);
 
-  Serial.print(':');
+  Log.info(':');
 
   // Minute
   if (GPS.minute < 10) {
-    Serial.print('0');
+    Log.info('0');
   }
-  Serial.print(GPS.minute, DEC);
+  Log.info(GPS.minute, DEC);
 
-  Serial.print(':');
+  Log.info(':');
 
   // Seconds
   if (GPS.seconds < 10) {
-    Serial.print('0');
+    Log.info('0');
   }
-  Serial.print(GPS.seconds, DEC);
-  Serial.print('.');
+  Log.info(GPS.seconds, DEC);
+  Log.info('.');
   if (GPS.milliseconds < 10) {
-    Serial.print("00");
+    Log.info("00");
   } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
-    Serial.print("0");
+    Log.info("0");
   }
-  Serial.println(GPS.milliseconds);
+  Log.info(GPS.milliseconds);
   
-  Serial.print("Date: ");
-  Serial.print(GPS.month, DEC);
-  Serial.print('/');
-  Serial.print(GPS.day, DEC);
-  Serial.print("/20");
-  Serial.println(GPS.year, DEC);
+  Log.info("Date: ");
+  Log.info(GPS.month, DEC);
+  Log.info('/');
+  Log.info(GPS.day, DEC);
+  Log.info("/20");
+  Log.info(GPS.year, DEC);
   
-  Serial.print("Fix: ");
-  Serial.print((int) GPS.fix);
+  Log.info("Fix: ");
+  Log.info((int) GPS.fix);
   
-  Serial.print(" quality: ");
-  Serial.println((int) GPS.fixquality);
+  Log.info(" quality: ");
+  Log.info((int) GPS.fixquality);
 }
 
 
 void serialPrintGPSLoc() {
-  Serial.print("Location: ");
-  Serial.print(GPS.latitude, 4);
-  Serial.print(GPS.lat);
-  Serial.print(", ");
-  Serial.print(GPS.longitude, 4);
-  Serial.println(GPS.lon);
+  Log.info("Location: ");
+  Log.info(GPS.latitude, 4);
+  Log.info(GPS.lat);
+  Log.info(", ");
+  Log.info(GPS.longitude, 4);
+  Log.info(GPS.lon);
 }

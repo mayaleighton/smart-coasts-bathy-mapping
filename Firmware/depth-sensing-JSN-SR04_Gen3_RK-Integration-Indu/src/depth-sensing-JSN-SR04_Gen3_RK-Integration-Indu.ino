@@ -1,9 +1,7 @@
 #include "JSN-SR04_Gen3_RK.h"
 
-const int TRIG_PIN = A2;
-const int ECHO_PIN = A1;
-const int UNUSED_PIN0 = A0;
-const int UNUSED_PIN3 = A3;
+SerialLogHandler logHandler;
+
 
 // ------------------ Global Variables --------------------------------
 float temperatureC;
@@ -47,11 +45,16 @@ FuelGauge batteryMonitor;
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
 
-// Declare one of these as a global variable to manage the JSN-SR04 sensor
+// ------------------------ Depth ------------------------------------------
+const int TRIG_PIN = A2;
+const int ECHO_PIN = A1;
+const int UNUSED_PIN0 = A0;
+const int UNUSED_PIN3 = A3;
+
 JSN_SR04_Gen3 distanceSensor;
 float depth_cm;
 
-float distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
+void distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
     switch(result.status) {
         case JSN_SR04_Gen3::DistanceResult::Status::SUCCESS:
             Log.info("cm=%lf inch=%lf", result.cm(), result.inch());
@@ -66,7 +69,6 @@ float distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
             Log.info("distance error %d", result.status);
             break;
     }
-    return depth_cm;
 }
 
 

@@ -61,7 +61,7 @@ const pin_t MY_LED = D7; // blink to let us know you're alive
 bool led_state = HIGH; // starting state
 
 
-// Global objects
+// Global objects; TODO: save power stats
 FuelGauge batteryMonitor;
 
 
@@ -174,6 +174,10 @@ float getDepth(float temp_in) {
         // bad values
         Serial.println("Out of depth range");
     }
+    else{
+      Serial.print("Depth (cm): ");
+      Serial.println(depth_cm);
+    }
 
     return depth_cm;
 
@@ -248,6 +252,13 @@ void printToFile() {
       dataFile.print('0');
     }
     dataFile.print(GPS.seconds, DEC);
+    dataFile.print(".");
+    if (GPS.milliseconds < 10) {
+      dataFile.print("00");
+    } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
+      dataFile.print("0");
+    }
+    dataFile.println(GPS.milliseconds);
     dataFile.print(",");
 
     // Elapsed Time
@@ -279,7 +290,7 @@ void printToFile() {
     dataFile.print(GPS.speed);
     dataFile.print(",");
 
-    //dataFile.println(GPS.angle);
+    // Angle
     dataFile.println(GPS.angle);
 
     dataFile.close();

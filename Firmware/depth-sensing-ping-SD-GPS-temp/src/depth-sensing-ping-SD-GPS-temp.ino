@@ -160,6 +160,10 @@ float getDepth(float temp_in) {
         // bad values
         Serial.println("Out of depth range");
     }
+    else{
+      Serial.print("Depth (cm): ");
+      Serial.println(depth_cm);
+    }
 
     return depth_cm;
 

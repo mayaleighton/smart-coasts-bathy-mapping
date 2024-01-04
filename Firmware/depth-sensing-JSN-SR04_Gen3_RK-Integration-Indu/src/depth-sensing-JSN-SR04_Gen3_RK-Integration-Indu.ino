@@ -2,10 +2,9 @@
 
 SerialLogHandler logHandler;
 
-
 // ------------------ Global Variables --------------------------------
 float temperatureC;
-float depth;
+float depth_cm;
 
 long real_time;
 int millis_now;
@@ -46,13 +45,12 @@ SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
 
 // ------------------------ Depth ------------------------------------------
+JSN_SR04_Gen3 distanceSensor;
+
 const int TRIG_PIN = A2;
 const int ECHO_PIN = A1;
-const int UNUSED_PIN0 = A0;
-const int UNUSED_PIN3 = A3;
-
-JSN_SR04_Gen3 distanceSensor;
-float depth_cm;
+const int UNUSED_PIN0 = A0; // unused but reserved!
+const int UNUSED_PIN3 = A3; // unused but reserved!
 
 void distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
     switch(result.status) {
@@ -70,7 +68,6 @@ void distanceCallback(JSN_SR04_Gen3::DistanceResult result) {
             break;
     }
 }
-
 
 //===============================================================================
 // INITIALIZATION
@@ -103,7 +100,7 @@ void setup() {
     
         // Initialize the SD library
         if (!SD.begin(SD_CHIP_SELECT, SPI_FULL_SPEED)) {
-            Serial.println("failed to open card");
+            Log.info("failed to open card");
             return;
         }
 
@@ -264,7 +261,7 @@ void printToFile() {
   }
   // if the file isn't open, pop up an error:
   else {
-    Serial.println("error opening datalog.txt");
+    Log.info("error opening datalog.txt");
   }
 }
 

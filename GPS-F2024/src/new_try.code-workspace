@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../Library/CloudStorage/OneDrive-UNC-Wilmington/THESIS/new_try"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"extensions.ignoreRecommendations": true,
+		"files.associations": {
+			"*.ino": "cpp"
+		}
+	}
+}
